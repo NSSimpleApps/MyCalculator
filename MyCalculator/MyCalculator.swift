@@ -237,11 +237,11 @@ struct MyCalculator: View {
                     ToolbarItem(placement: .navigationBarLeading) {
                         ShareLink(item: ExportData(), preview: SharePreview("data.json"))
                         {
-                            Text("Экспорт")
+                            Text("Сохранить")
                         }
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Импорт") {
+                        Button("Загрузить") {
                             self.isFileImporterPresented = true
                         }
                     }
@@ -294,7 +294,7 @@ struct MyCalculator: View {
                                     Section(header: Text("Подробности")) {
                                         TextField("", text: self.$info)
                                     }
-                                }.navigationTitle("Новая запись")
+                                }.navigationTitle(self.title)
                                     .toolbar{
                                         ToolbarItem(placement: .navigationBarLeading) {
                                             Button("Отмена") {
