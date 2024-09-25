@@ -14,7 +14,7 @@ struct Sum: View {
         Text(String(self.sum).ruble).font(.largeTitle)
             .task {
                 do {
-                    self.sum = try MyCalculator.realm.objects(Item.self).sum(of: \.amount)
+                    self.sum = try await MyCalculator.realm().objects(Item.self).sum(of: \.amount)
                 } catch {
                     print(error)
                 }

@@ -6,8 +6,7 @@
 //
 
 import SwiftUI
-import Realm
-import RealmSwift
+@preconcurrency import RealmSwift
 
 final class Item: Object, Codable {
     @Persisted var info: String
@@ -157,14 +156,12 @@ struct MyCalculator: View {
         }
     }
     
-    static var realm: Realm {
-        get throws {
-            return try Realm(configuration: .init(schemaVersion: 0,
-                                                  migrationBlock: { migration, oldSchemaVersion in
-                
-            },
-                                                  objectTypes: [Item.self]))
-        }
+    static func realm() async throws -> Realm  {
+        return try await Realm(configuration: .init(schemaVersion: 0,
+                                                    migrationBlock: { migration, oldSchemaVersion in
+            
+        },
+                                                    objectTypes: [Item.self]))
     }
     
     private let dateFormatter: DateFormatter = {
@@ -195,7 +192,7 @@ struct MyCalculator: View {
                             self.models[index].id
                         }
                         do {
-                            let realm = try Self.realm
+                            let realm = try await Self.realm()
                             let items = realm.objects(Item.self).filter(NSPredicate(format: "\(Item.Keys.itemId.stringValue) IN %@", ids))
                             try realm.write({
                                 realm.delete(items)
@@ -220,13 +217,13 @@ struct MyCalculator: View {
                         let data = try Data(contentsOf: url)
                         
                         if case let newItems = try JSONDecoder().decode([FailableJsonValue<Item>].self, from: data).compactMap({ $0.value }), newItems.isEmpty == false {
-                            let realm = try Self.realm
+                            let realm = try await Self.realm()
                             let ids: [String] = newItems.map({ $0.itemId })
                             try realm.write({
                                 realm.delete(realm.objects(Item.self).filter("\(Item.Keys.itemId.stringValue) IN %@", ids))
                                 realm.add(newItems)
                             })
-                            self.validateView()
+                            await self.validateView()
                         }
                     } catch {
                         print(error)
@@ -270,7 +267,7 @@ struct MyCalculator: View {
                                     newItem.itemId = UUID().uuidString
                                     
                                     do {
-                                        let realm = try Self.realm
+                                        let realm = try await Self.realm()
                                         try realm.write({
                                             realm.add(newItem)
                                         })
@@ -314,12 +311,12 @@ struct MyCalculator: View {
                     }
                 }.task {
                     if self.isNumberInputPresented == false, self.models.isEmpty {
-                        self.validateView()
+                        await self.validateView()
                     }
                 }
     }
     
-    private func validateView() {
+    private func validateView() async {
         do {
             let format: String
             let amount = Item.Keys.amount.stringValue
@@ -329,7 +326,8 @@ struct MyCalculator: View {
             case .expenses:
                 format = "\(amount) < 0"
             }
-            self.models = try Self.realm.objects(Item.self)
+            let realm = try await Self.realm()
+            self.models = realm.objects(Item.self)
                 .filter(format)
                 .sorted(by: \.createdAt, ascending: false)
                 .map({ item in
@@ -346,7 +344,8 @@ struct ExportData: Transferable {
     static var transferRepresentation: some TransferRepresentation {
         return DataRepresentation<Self>(exportedContentType: .json,
                                         exporting: { sSelf in
-            let objects = try MyCalculator.realm.objects(Item.self).sorted(by: \.createdAt, ascending: false)
+            let realm = try await MyCalculator.realm()
+            let objects = realm.objects(Item.self).sorted(by: \.createdAt, ascending: false)
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             return try encoder.encode(objects)
