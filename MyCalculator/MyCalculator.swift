@@ -166,7 +166,7 @@ struct MyCalculator: View {
     
     private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm:ss\ndd MMMM yyyy"
+        dateFormatter.dateFormat = "dd MMMM yyyy\nHH:mm:ss"
         
         return dateFormatter
     }()
@@ -211,7 +211,7 @@ struct MyCalculator: View {
         self.mainView.navigationTitle(self.title)
             .fileImporter(isPresented: self.$isFileImporterPresented, allowedContentTypes: [.text],
                           onCompletion: { result in
-                Task {
+                Task.detached {
                     do {
                         let url = try result.get()
                         let data = try Data(contentsOf: url)
@@ -231,18 +231,18 @@ struct MyCalculator: View {
                 }
             })
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
+                    ToolbarItem(placement: .topBarLeading) {
                         ShareLink(item: ExportData(), preview: SharePreview("data.json"))
                         {
                             Text("Сохранить")
                         }
                     }
-                    ToolbarItem(placement: .navigationBarLeading) {
+                    ToolbarItem(placement: .topBarLeading) {
                         Button("Загрузить") {
                             self.isFileImporterPresented = true
                         }
                     }
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button("Добавить") {
                             self.isNumberInputPresented = true
                         }.sheet(isPresented: self.$isNumberInputPresented,
@@ -280,7 +280,7 @@ struct MyCalculator: View {
                                 }
                             }
                         }, content: {
-                            NavigationView {
+                            NavigationStack {
                                 List {
                                     Section(header: Text("Сумма")) {
                                         TextField("", text: self.$number)
@@ -293,14 +293,14 @@ struct MyCalculator: View {
                                     }
                                 }.navigationTitle(self.title)
                                     .toolbar{
-                                        ToolbarItem(placement: .navigationBarLeading) {
+                                        ToolbarItem(placement: .topBarLeading) {
                                             Button("Отмена") {
                                                 self.info = ""
                                                 self.number = ""
                                                 self.isNumberInputPresented = false
                                             }
                                         }
-                                        ToolbarItem(placement: .navigationBarTrailing) {
+                                        ToolbarItem(placement: .topBarTrailing) {
                                             Button("Добавить") {
                                                 self.isNumberInputPresented = false
                                             }

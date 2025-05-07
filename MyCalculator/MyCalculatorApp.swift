@@ -14,7 +14,7 @@ struct MyCalculatorApp: App {
             TabView(content: {
                 let expensesCalculator = MyCalculator(sign: .expenses)
                 let expensesTitle = expensesCalculator.title
-                NavigationView {
+                NavigationStack {
                     expensesCalculator
                 }.tabItem {
                     Label {
@@ -26,7 +26,7 @@ struct MyCalculatorApp: App {
                 
                 let incomesCalculator = MyCalculator(sign: .incomes)
                 let incomesTitle = incomesCalculator.title
-                NavigationView {
+                NavigationStack {
                     incomesCalculator
                 }.tabItem {
                     Label {
@@ -36,7 +36,7 @@ struct MyCalculatorApp: App {
                     }
                 }.tag(1)
                 
-                NavigationView {
+                NavigationStack {
                     Sum().navigationTitle("Сумма")
                 }.tabItem {
                     Label {
